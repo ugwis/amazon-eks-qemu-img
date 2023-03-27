@@ -1,0 +1,37 @@
+Content-Type: multipart/mixed; boundary="//"
+MIME-Version: 1.0
+
+--//
+Content-Type: text/cloud-config; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename="cloud-config.txt"
+
+#cloud-config
+#vim:syntax=yaml
+users:
+# A user by the name `ec2-user` is created in the image by default.
+  - default
+  - name: ec2-user
+    lock_passwd: false
+    ssh_authorized_keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+y04Hi+Hm/hQFY+O+xyJFsKOo6KVaklV7jHCVv2NlrCP1oXUk11JnR2HTFQASGTwFHbbFjvHlTW/wCmklD2gBGg8kPiwTYerQSCPDUqNpl7wbgoH0TcNGKEi5taTGiQ+NNqhph82aBMmYUZOGixOnHEiTCWkhRgfqb/TVcM2bS7wDLrdZwYvMS/URMnuM3hzMVYtd696Z+54hoEZSj1jh6OuwZEofjyLHWaOwddeFcufi2XVffeJFUP44IEJPElXbHmYyIVHe6ERd6DUnIQCAobw16eGfMJPGJs6+gNB4r+pdapgJp2JkWUweU3/Xdyj6jIrFL0X6+2k40R25OkGv ugwis@rx200s8
+chpasswd:
+  list: |
+    ec2-user:password
+# In the above line, do not add any spaces after 'ec2-user:'.
+cloud_final_modules:
+- [scripts-user, always]
+
+--//
+Content-Type: text/x-shellscript; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename="userdata.txt"
+
+
+
+#!/bin/bash
+curl -Lo ec2-metadata-mock https://github.com/aws/amazon-ec2-metadata-mock/releases/download/v1.11.2/ec2-metadata-mock-`uname | tr '[:upper:]' '[:lower:]'`-amd64
+chmod +x ec2-metadata-mock
+./ec2-metadata-mock

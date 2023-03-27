@@ -1,0 +1,184 @@
+{
+  "_comment": "All template variables are enumerated here; and most variables have a default value defined in eks-worker-al2-variables.json",
+  "variables": {
+    "additional_yum_repos": null,
+    "arch": null,
+    "associate_public_ip_address": null,
+    "aws_access_key_id": null,
+    "aws_region": null,
+    "aws_secret_access_key": null,
+    "aws_session_token": null,
+    "binary_bucket_name": null,
+    "binary_bucket_region": null,
+    "cache_container_images": null,    
+    "cni_plugin_version": null,
+    "containerd_version": null,
+    "creator": null,
+    "docker_version": null,
+    "encrypted": null,
+    "instance_type": null,
+    "kernel_version": null,
+    "kms_key_id": null,
+    "kubernetes_build_date": null,
+    "kubernetes_version": null,
+    "launch_block_device_mappings_volume_size": null,
+    "pause_container_version": null,    
+    "pull_cni_from_github": null,
+    "remote_folder": null,
+    "runc_version": null,
+    "security_group_id": null,
+    "sonobuoy_e2e_registry": null,
+    "source_ami_filter_name": null,
+    "source_ami_id": null,
+    "source_ami_owners": null,
+    "ssh_interface": null,
+    "ssh_username": null,
+    "subnet_id": null,
+    "temporary_security_group_source_cidrs": null,
+    "volume_type": null
+  },
+  "builders": [
+    {
+      "type": "qemu",
+      "iso_url": "https://cdn.amazonlinux.com/os-images/2.0.20230320.0/kvm/amzn2-kvm-2.0.20230320.0-x86_64.xfs.gpt.qcow2",
+      "iso_checksum": "none",
+      "disk_image": true,
+      "output_directory": "output_centos_tdhtest",
+      "shutdown_command": "echo 'packer' | sudo -S shutdown -P now",
+      "format": "qcow2",
+      "accelerator": "kvm",
+      "http_directory": "",
+      "ssh_username": "ec2-user",
+      "ssh_private_key_file": "./ssh_key",
+      "ssh_timeout": "20m",
+      "vm_name": "tdhtest",
+      "vnc_use_password": true,
+      "net_device": "virtio-net",
+      "disk_interface": "virtio",
+      "boot_wait": "10s",
+      "boot_command": [
+        "<tab> text ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/centos6-ks.cfg<enter><wait>"
+      ],
+      "cd_files": [
+        "./seedconfig/meta-data",
+        "./seedconfig/user-data"
+      ],
+      "cd_label": "cidata",
+      "qemuargs": [
+        [
+          "-m",
+          "4096"
+        ],
+        [
+          "-smp",
+          "2"
+        ],
+        [
+          "-display",
+          "none"
+        ]
+      ]
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "remote_folder": "{{ user `remote_folder`}}",
+      "script": "{{template_dir}}/scripts/install_additional_repos.sh",
+      "environment_vars": [
+        "ADDITIONAL_YUM_REPOS={{user `additional_yum_repos`}}"
+      ]
+    },
+    {
+      "type": "shell",
+      "remote_folder": "{{ user `remote_folder`}}",
+      "inline": [
+        "mkdir -p /tmp/worker/log-collector-script/"
+      ]
+    },
+    {
+      "type": "file",
+      "source": "{{template_dir}}/files/",
+      "destination": "/tmp/worker/"
+    },
+    {
+      "type": "file",
+      "source": "{{template_dir}}/log-collector-script/linux/",
+      "destination": "/tmp/worker/log-collector-script/"
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "sudo chmod -R a+x /tmp/worker/bin/",
+        "sudo mv /tmp/worker/bin/* /usr/bin/"
+      ]
+    },
+    {
+      "type": "shell",
+      "remote_folder": "{{ user `remote_folder`}}",
+      "expect_disconnect": true,
+      "pause_after": "90s",
+      "script": "{{template_dir}}/scripts/upgrade_kernel.sh",
+      "environment_vars": [
+        "KUBERNETES_VERSION={{user `kubernetes_version`}}",
+        "KERNEL_VERSION={{user `kernel_version`}}"
+      ]
+    },
+    {
+      "type": "shell",
+      "remote_folder": "{{ user `remote_folder`}}",
+      "script": "{{template_dir}}/scripts/install-worker.sh",
+      "environment_vars": [
+        "IMDS_ENDPOINT=127.0.0.1:1338",
+        "KUBERNETES_VERSION={{user `kubernetes_version`}}",
+        "KUBERNETES_BUILD_DATE={{user `kubernetes_build_date`}}",
+        "BINARY_BUCKET_NAME={{user `binary_bucket_name`}}",
+        "BINARY_BUCKET_REGION={{user `binary_bucket_region`}}",
+        "DOCKER_VERSION={{user `docker_version`}}",
+        "CONTAINERD_VERSION={{user `containerd_version`}}",
+        "RUNC_VERSION={{user `runc_version`}}",
+        "CNI_PLUGIN_VERSION={{user `cni_plugin_version`}}",
+        "PULL_CNI_FROM_GITHUB={{user `pull_cni_from_github`}}",
+        "AWS_ACCESS_KEY_ID={{user `aws_access_key_id`}}",
+        "AWS_SECRET_ACCESS_KEY={{user `aws_secret_access_key`}}",
+        "AWS_SESSION_TOKEN={{user `aws_session_token`}}",
+        "SONOBUOY_E2E_REGISTRY={{user `sonobuoy_e2e_registry`}}",
+        "PAUSE_CONTAINER_VERSION={{user `pause_container_version`}}",
+        "CACHE_CONTAINER_IMAGES={{user `cache_container_images`}}"
+      ]
+    },
+    {
+      "type": "shell",
+      "remote_folder": "{{ user `remote_folder`}}",
+      "script": "{{template_dir}}/scripts/cleanup.sh"
+    },
+    {
+      "type": "shell",
+      "remote_folder": "{{ user `remote_folder`}}",
+      "script": "{{template_dir}}/scripts/cleanup_additional_repos.sh",
+      "environment_vars": [
+        "ADDITIONAL_YUM_REPOS={{user `additional_yum_repos`}}"
+      ]
+    },
+    {
+      "type": "shell",
+      "remote_folder": "{{ user `remote_folder`}}",
+      "script": "{{template_dir}}/scripts/validate.sh",
+      "environment_vars": [
+        "KERNEL_VERSION={{user `kernel_version`}}"
+      ]
+    },
+    {
+      "type": "shell",
+      "remote_folder": "{{ user `remote_folder`}}",
+      "script": "{{template_dir}}/scripts/generate-version-info.sh",
+      "execute_command": "chmod +x {{ .Path }}; {{ .Path }} /tmp/version-info.json"
+    },
+    {
+      "type": "file",
+      "direction": "download",
+      "source": "/tmp/version-info.json",
+      "destination": "{{ user `ami_name` }}-version-info.json"
+    }
+  ]
+}
