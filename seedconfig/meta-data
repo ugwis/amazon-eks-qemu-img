@@ -1,5 +1,14 @@
 local-hostname: vm_hostname
 # eth0 is the default network interface enabled in the image. You can configure static network settings with an entry like the following.
 network-interfaces: |
+  auth lo lo:1
+  iface lo inet loopback
+
+  iface lo:1 inet static
+    address 169.254.169.254
+    network 169.254.169.254
+    netmask 255.255.255.255
+
+
   auto eth0
   iface eth0 inet dhcp

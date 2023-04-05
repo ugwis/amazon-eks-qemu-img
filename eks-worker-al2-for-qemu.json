@@ -129,7 +129,6 @@
       "remote_folder": "{{ user `remote_folder`}}",
       "script": "{{template_dir}}/scripts/install-worker.sh",
       "environment_vars": [
-        "IMDS_ENDPOINT=127.0.0.1:1338",
         "KUBERNETES_VERSION={{user `kubernetes_version`}}",
         "KUBERNETES_BUILD_DATE={{user `kubernetes_build_date`}}",
         "BINARY_BUCKET_NAME={{user `binary_bucket_name`}}",

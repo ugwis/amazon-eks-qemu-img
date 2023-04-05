@@ -16,12 +16,36 @@ users:
     lock_passwd: false
     ssh_authorized_keys:
       - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+y04Hi+Hm/hQFY+O+xyJFsKOo6KVaklV7jHCVv2NlrCP1oXUk11JnR2HTFQASGTwFHbbFjvHlTW/wCmklD2gBGg8kPiwTYerQSCPDUqNpl7wbgoH0TcNGKEi5taTGiQ+NNqhph82aBMmYUZOGixOnHEiTCWkhRgfqb/TVcM2bS7wDLrdZwYvMS/URMnuM3hzMVYtd696Z+54hoEZSj1jh6OuwZEofjyLHWaOwddeFcufi2XVffeJFUP44IEJPElXbHmYyIVHe6ERd6DUnIQCAobw16eGfMJPGJs6+gNB4r+pdapgJp2JkWUweU3/Xdyj6jIrFL0X6+2k40R25OkGv ugwis@rx200s8
+write_files:
+  - path: /etc/systemd/system/ec2-metadata-mock.service
+    permission: 0755
+    owner: root
+    content: |
+      [Unit]
+      Description=A tool to simulate Amazon EC2 instance metadata
+      After=network.target
+      
+      [Service]
+      Type=simple
+      ExecStart=/bin/ec2-metadata-mock -p 80
+      Restart=always
+      
+      [Install]
+      WantedBy=multi-user.target
+  - path: /etc/sysconfig/network-scripts/ifcfg-lo:1
+    permissions: 0644
+    owner: root
+    content: |
+      DEVICE=lo:1
+      NM_CONTROLLED=no
+      ONBOOT=yes
+      IPADDR=169.254.169.254
+      NETMASK=255.255.255.255
+      NAME=lo1
 chpasswd:
   list: |
     ec2-user:password
 # In the above line, do not add any spaces after 'ec2-user:'.
-cloud_final_modules:
-- [scripts-user, always]
 
 --//
 Content-Type: text/x-shellscript; charset="us-ascii"
@@ -30,8 +54,10 @@ Content-Transfer-Encoding: 7bit
 Content-Disposition: attachment; filename="userdata.txt"
 
 
-
 #!/bin/bash
-curl -Lo ec2-metadata-mock https://github.com/aws/amazon-ec2-metadata-mock/releases/download/v1.11.2/ec2-metadata-mock-`uname | tr '[:upper:]' '[:lower:]'`-amd64
-chmod +x ec2-metadata-mock
-./ec2-metadata-mock
+curl -Lo /bin/ec2-metadata-mock https://github.com/aws/amazon-ec2-metadata-mock/releases/download/v1.11.2/ec2-metadata-mock-`uname | tr '[:upper:]' '[:lower:]'`-amd64
+chmod +x /bin/ec2-metadata-mock
+systemctl daemon-reload
+systemctl restart network
+systemctl enable ec2-metadata-mock
+systemctl start ec2-metadata-mock
