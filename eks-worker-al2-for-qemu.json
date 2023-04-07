@@ -51,9 +51,9 @@
       "ssh_username": "ec2-user",
       "ssh_private_key_file": "./ssh_key",
       "ssh_timeout": "20m",
+      "ssh_port": 10022,
       "vm_name": "tdhtest",
       "vnc_use_password": true,
-      "net_device": "virtio-net",
       "disk_interface": "virtio",
       "boot_wait": "10s",
       "boot_command": [
@@ -76,6 +76,10 @@
         [
           "-display",
           "none"
+        ],
+        [
+          "-net",
+          "user,hostfwd=tcp::10022-:22"
         ]
       ]
     }

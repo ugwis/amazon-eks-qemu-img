@@ -42,6 +42,65 @@ write_files:
       IPADDR=169.254.169.254
       NETMASK=255.255.255.255
       NAME=lo1
+  #- path: /etc/metadata.json
+  #  permissions: 0644
+  #  owner: root
+  #  content: |
+  #    {
+  #      "metadata": {
+  #        "values": {
+  #          "hostname": "ip-172-31-253-6.ec2.internal",
+  #          "instance-id": "i-1234567890abcdef0",
+  #          "local-hostname": "ip-172-31-253-6.ec2.internal",
+  #          "local-ipv4": "172.31.253.6",
+  #          "mac": "06:35:e2:40:fa:71",
+  #          "mac-device-number": "0",
+  #          "mac-ipv4-associations": "192.0.2.54",
+  #          "mac-ipv6-associations": "2001:db8:8:4::2",
+  #          "mac-local-hostname": "ip-172-31-253-6.ec2.internal",
+  #          "mac-local-ipv4s": "172.31.253.6",
+  #          "mac-mac": "06:35:e2:40:fa:71",
+  #          "mac-network-interface-id": "eni-072a26e1d653727d9",
+  #          "mac-owner-id": "515336597381",
+  #          "mac-public-hostname": "ec2-192-0-2-54.compute-1.amazonaws.com",
+  #          "mac-public-ipv4s": "192.0.2.54",
+  #          "mac-security-group-ids": "sg-000bcfcf89f6df377",
+  #          "mac-subnet-id": "subnet-0f867f5d351e97721",
+  #          "mac-subnet-ipv4-cidr-block": "192.0.2.0/24",
+  #          "mac-subnet-ipv6-cidr-blocks": "2001:db8::/32",
+  #          "mac-vpc-id": "vpc-11f4d676",
+  #          "mac-vpc-ipv4-cidr-block": "192.0.2.0/24",
+  #          "mac-vpc-ipv4-cidr-blocks": "192.0.2.0/24",
+  #          "mac-vpc-ipv6-cidr-blocks": "2001:db8::/32",
+  #          "placement-availability-zone": "ap-northeast-1a",
+  #          "placement-availability-zone-id": "apne1-az4",
+  #          "placement-region": "ap-northeast-1",
+  #          "public-hostname": "ec2-192-0-2-54.compute-1.amazonaws.com",
+  #          "public-ipv4": "192.0.2.54"
+  #        }
+  #      },
+  #      "dynamic": {
+  #        "values": {
+  #          "instance-identity-document": {
+  #            "accountId": "908092874788",
+  #            "imageId": "ami-0b69ea66ff7391e80",
+  #            "availabilityZone": "ap-northeast-1a",
+  #            "ramdiskId": null,
+  #            "kernelId": null,
+  #            "devpayProductCodes": null,
+  #            "marketplaceProductCodes": null,
+  #            "version": "2017-09-30",
+  #            "privateIp": "10.0.7.10",
+  #            "billingProducts": null,
+  #            "instanceId": "i-1234567890abcdef0",
+  #            "pendingTime": "2019-10-31T07:02:24Z",
+  #            "architecture": "x86_64",
+  #            "instanceType": "c4.large",
+  #            "region": "ap-northeast-1"
+  #          }
+  #        }
+  #      }
+  #    }
 chpasswd:
   list: |
     ec2-user:password
@@ -59,5 +118,5 @@ curl -Lo /bin/ec2-metadata-mock https://github.com/aws/amazon-ec2-metadata-mock/
 chmod +x /bin/ec2-metadata-mock
 systemctl daemon-reload
 systemctl restart network
-systemctl enable ec2-metadata-mock
-systemctl start ec2-metadata-mock
+#systemctl enable ec2-metadata-mock
+#systemctl start ec2-metadata-mock
